@@ -3,9 +3,10 @@ This script requires external libraries:
 * flax
 * pillow
 
-If those are installed, you can run it with
+Run it with
 ```
 git clone https://github.com/clayote/aiml425assignment2.git
 cd aiml425assignment2
+python3 -m pip install jax flax pillow
 python3 main.py
 ```
