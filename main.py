@@ -32,7 +32,7 @@ def download_data():
             assert got.status == 200, "Network error when downloading " + fn
             with open("data/" + fn, "wb") as f:
                 f.write(got.data)
-    for fn in ["train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", "t10k-images-idx3-ubyte.gz", "t10k.labels-idx1-ubyte.gz"]:
+    for fn in ["train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", "t10k-images-idx3-ubyte.gz", "t10k-labels-idx1-ubyte.gz"]:
         if not os.path.exists("data/" + fn):
             uri = "https://storage.googleapis.com/cvdf-datasets/mnist/" + fn
             got = urllib3.request("GET", uri)
