@@ -7,6 +7,7 @@ import random as pyrandom
 import time
 from textwrap import indent
 import shelve
+import urllib3
 
 import PIL.Image
 from flax import linen as nn
@@ -19,6 +20,26 @@ LAYER_SIZES = [28 ** 2, 28 ** 2, 28 ** 2, 3]
 STEP_SIZE = 0.01
 NUM_EPOCHS = 100
 SHOW_GRADIENTS = False  # set to True to see the gradients every epoch. Slow!
+
+
+def download_data():
+    if not os.path.exists("data"):
+        os.mkdir("data")
+    for fn in ["byhand.zip", "byhand_adaptive.zip", "byhand_interpolative.zip", "byhand_normalized.zip", "whiteonblack.zip"]:
+        if not os.path.exists("data/" + fn):
+            uri = "https://github.com/clayote/aiml425assignment2/raw/main/data/" + fn
+            got = urllib3.request("GET", uri)
+            assert got.status == 200, "Network error when downloading " + fn
+            with open("data/" + fn, "wb") as f:
+                f.write(got.data)
+    for fn in ["train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", "t10k-images-idx3-ubyte.gz", "t10k.labels-idx1-ubyte.gz"]:
+        if not os.path.exists("data/" + fn):
+            uri = "https://yann.lecun.com/exdb/mnist/" + fn
+            got = urllib3.request("GET", uri)
+            assert got.status == 200, "Network error when downloading " + fn
+            with open("data/" + fn, "wb") as f:
+                f.write(got.data)
+
 
 
 def preprocess(prefix="train", random_seed=0, holdout_prob=0.):
@@ -44,10 +65,10 @@ def preprocess(prefix="train", random_seed=0, holdout_prob=0.):
         assert magic == b'\x00\x00\x08\x03', f"Test image file magic number was {magic}, should have been 0x00000803"
         magic = labf.read(4)
         assert magic == b'\x00\x00\x08\x01', f"Test label file magic number was {magic}, should have been 0x00000801"
-        n_images = int.from_bytes(imgf.read(4))
-        assert n_images == int.from_bytes(labf.read(4))
-        width = int.from_bytes(imgf.read(4))
-        height = int.from_bytes(imgf.read(4))
+        n_images = int.from_bytes(imgf.read(4), "big")
+        assert n_images == int.from_bytes(labf.read(4), "big")
+        width = int.from_bytes(imgf.read(4), "big")
+        height = int.from_bytes(imgf.read(4), "big")
         print(f"{prefix} dataset has {n_images} images of size {width}x{height}")
         if holdout_prob == 0.:
             holdout = shelve.Shelf({})
@@ -227,6 +248,7 @@ def restore_state():
 
 
 if __name__ == "__main__":
+    download_data()
     preprocess("t10k", holdout_prob=0.05)
     for dataset in ("train", "whiteonblack", "byhand", "byhand_adaptive", "byhand_interpolative", "byhand_normalized"):
         preprocess(dataset)
