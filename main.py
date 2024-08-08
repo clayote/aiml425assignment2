@@ -34,7 +34,7 @@ def download_data():
                 f.write(got.data)
     for fn in ["train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", "t10k-images-idx3-ubyte.gz", "t10k.labels-idx1-ubyte.gz"]:
         if not os.path.exists("data/" + fn):
-            uri = "https://yann.lecun.com/exdb/mnist/" + fn
+            uri = "https://storage.googleapis.com/cvdf-datasets/mnist/" + fn
             got = urllib3.request("GET", uri)
             assert got.status == 200, "Network error when downloading " + fn
             with open("data/" + fn, "wb") as f:
@@ -77,7 +77,7 @@ def preprocess(prefix="train", random_seed=0, holdout_prob=0.):
         with shelve.open(f"preprocessed/{prefix}_shelf.pkl") as shelf, holdout as holdout_shelf:
             for i in range(n_images):
                 do_holdout = randomizer.random() < holdout_prob
-                label = int.from_bytes(labf.read(1))
+                label = int.from_bytes(labf.read(1), "big")
                 rotation = randomizer.choice([-90, 0, 90])
                 # I could probably do this without PIL...
                 img = PIL.Image.frombytes("L", (width, height),
